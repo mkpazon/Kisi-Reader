@@ -1,4 +1,4 @@
-package com.mkpazon.kisireader;
+package com.mkpazon.kisireader.activity;
 
 import android.content.Intent;
 import android.nfc.NdefMessage;
@@ -15,11 +15,22 @@ import android.support.v7.widget.Toolbar;
 import android.view.Menu;
 import android.view.MenuItem;
 
+import com.mkpazon.kisireader.Constants;
+import com.mkpazon.kisireader.R;
+import com.mkpazon.kisireader.service.web.Webservice;
+import com.mkpazon.kisireader.service.web.WebserviceProvider;
+
 import butterknife.BindView;
 import butterknife.ButterKnife;
+import io.reactivex.android.schedulers.AndroidSchedulers;
+import io.reactivex.disposables.CompositeDisposable;
+import io.reactivex.observers.DisposableObserver;
+import io.reactivex.schedulers.Schedulers;
 import timber.log.Timber;
 
 public class MainActivity extends AppCompatActivity implements NavigationView.OnNavigationItemSelectedListener {
+
+    private CompositeDisposable mDisposables = new CompositeDisposable();
 
     @BindView(R.id.toolbar)
     Toolbar mToolbar;
@@ -66,7 +77,42 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
             Timber.i("payload:" + payload);
 
+            if (Constants.PAYLOAD_UNLOCK.equals(payload)) {
+                processUnlock();
+            } else if (Constants.PAYLOAD_NOTHING.equals(payload)) {
+                // DO NOTHING
+            }
         }
+    }
+
+    private void processUnlock() {
+        Timber.d(".processUnlock");
+        Webservice webservice = WebserviceProvider.getWebService();
+        mDisposables.add(webservice.unlock(Constants.CONSTANT_AUTHORIZATION_HEADER)
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribeOn(Schedulers.io())
+                .subscribeWith(new DisposableObserver<String>() {
+                    @Override
+                    public void onNext(String s) {
+                        Timber.d("[unlock] -> .onNext");
+                    }
+
+                    @Override
+                    public void onError(Throwable e) {
+                        Timber.e(e, "[unlock] -> .onError");
+                    }
+
+                    @Override
+                    public void onComplete() {
+                        Timber.d("[unlock] -> .onComplete");
+                    }
+                }));
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        mDisposables.dispose();
     }
 
     private void setupDrawer() {

@@ -9,6 +9,8 @@ import timber.log.Timber;
  */
 
 public class App extends Application {
+    private static App mInstance;
+
     @Override
     public void onCreate() {
         super.onCreate();
@@ -20,5 +22,13 @@ public class App extends Application {
         });
 
         Configuration.init(this);
+    }
+
+    public App() {
+        mInstance = this;
+    }
+
+    public static App getInstance() {
+        return mInstance;
     }
 }
