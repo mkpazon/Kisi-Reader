@@ -8,7 +8,10 @@ import android.os.Bundle;
 import android.os.Parcelable;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
+import android.view.View;
 import android.widget.ImageView;
+import android.widget.ProgressBar;
+import android.widget.Toast;
 
 import com.mkpazon.kisireader.Constants;
 import com.mkpazon.kisireader.R;
@@ -19,8 +22,11 @@ import com.mkpazon.kisireader.ui.resource.SmartAnimationDrawable;
 import butterknife.BindView;
 import butterknife.ButterKnife;
 import io.reactivex.android.schedulers.AndroidSchedulers;
+import io.reactivex.annotations.NonNull;
 import io.reactivex.disposables.CompositeDisposable;
+import io.reactivex.disposables.Disposable;
 import io.reactivex.functions.Action;
+import io.reactivex.functions.Consumer;
 import io.reactivex.observers.DisposableObserver;
 import io.reactivex.schedulers.Schedulers;
 import timber.log.Timber;
@@ -32,6 +38,9 @@ public class StartActivity extends AppCompatActivity {
 
     @BindView(R.id.imageView_lock)
     ImageView mIvLock;
+
+    @BindView(R.id.progressBar)
+    ProgressBar mProgressBar;
 
 
     @Override
@@ -71,6 +80,7 @@ public class StartActivity extends AppCompatActivity {
                 processUnlock();
             } else if (Constants.PAYLOAD_NOTHING.equals(payload)) {
                 // DO NOTHING
+                Toast.makeText(this, "Payload: " + payload, Toast.LENGTH_LONG).show();
             }
         }
     }
@@ -81,9 +91,16 @@ public class StartActivity extends AppCompatActivity {
         mDisposables.add(webservice.unlock(Constants.CONSTANT_AUTHORIZATION_HEADER)
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribeOn(Schedulers.io())
+                .doOnSubscribe(new Consumer<Disposable>() {
+                    @Override
+                    public void accept(@NonNull Disposable disposable) throws Exception {
+                        mProgressBar.setVisibility(View.VISIBLE);
+                    }
+                })
                 .doAfterTerminate(new Action() {
                     @Override
                     public void run() throws Exception {
+                        mProgressBar.setVisibility(View.INVISIBLE);
                         // TODO move this in onNext()
                         mSmartAnimationDrawable.setOnAnimationFinishListener(new SmartAnimationDrawable.OnAnimationFinishListener() {
                             @Override
