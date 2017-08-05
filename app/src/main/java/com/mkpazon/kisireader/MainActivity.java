@@ -21,7 +21,6 @@ import timber.log.Timber;
 
 public class MainActivity extends AppCompatActivity implements NavigationView.OnNavigationItemSelectedListener {
 
-
     @BindView(R.id.toolbar)
     Toolbar mToolbar;
 
@@ -35,22 +34,38 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         ButterKnife.bind(this);
         setSupportActionBar(mToolbar);
         setupDrawer();
+
+        NfcAdapter adapter = NfcAdapter.getDefaultAdapter(this);
+        adapter.setNdefPushMessage(null, this, this);
     }
 
     @Override
     protected void onNewIntent(Intent intent) {
         Timber.d(".onNewIntent");
-        super.onNewIntent(intent);
 
-        if (intent != null && NfcAdapter.ACTION_NDEF_DISCOVERED.equals(intent.getAction())) {
-            Parcelable[] rawMessages =
-                    intent.getParcelableArrayExtra(NfcAdapter.EXTRA_NDEF_MESSAGES);
-            if (rawMessages != null) {
-                NdefMessage[] messages = new NdefMessage[rawMessages.length];
-                for (int i = 0; i < rawMessages.length; i++) {
-                    messages[i] = (NdefMessage) rawMessages[i];
-                }
-            }
+        setIntent(intent);
+    }
+
+    @Override
+    protected void onResume() {
+        Timber.d(".onResume");
+        super.onResume();
+
+        if (NfcAdapter.ACTION_NDEF_DISCOVERED.equals(getIntent().getAction())) {
+            processIntent(getIntent());
+        }
+    }
+
+    private void processIntent(Intent intent) {
+        Timber.d(".processIntent");
+        Parcelable[] rawMessages = intent.getParcelableArrayExtra(NfcAdapter.EXTRA_NDEF_MESSAGES);
+        if (rawMessages != null) {
+            NdefMessage msg = (NdefMessage) rawMessages[0];
+            // record 0 contains the MIME type, record 1 is the AAR, if present
+            String payload = new String(msg.getRecords()[0].getPayload());
+
+            Timber.i("payload:" + payload);
+
         }
     }
 
@@ -83,6 +98,4 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             super.onBackPressed();
         }
     }
-
-    
 }
