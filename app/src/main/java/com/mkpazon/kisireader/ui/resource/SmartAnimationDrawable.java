@@ -1,15 +1,16 @@
-package com.mkpazon.kisireader.ui.view;
+package com.mkpazon.kisireader.ui.resource;
 
 import android.graphics.drawable.AnimationDrawable;
 import android.os.Handler;
 
 /**
  * Created by mkpazon on 05/08/2017.
+ *
+ * Drawable that tracks the end of animation
+ *
  */
-
 public class SmartAnimationDrawable extends AnimationDrawable {
 
-    private Handler mAnimationHandler;
     private OnAnimationFinishListener mOnAnimationFinishListener;
 
     public SmartAnimationDrawable(AnimationDrawable aniDrawable) {
@@ -23,7 +24,7 @@ public class SmartAnimationDrawable extends AnimationDrawable {
     public void start() {
         super.start();
 
-        mAnimationHandler = new Handler();
+        Handler mAnimationHandler = new Handler();
         mAnimationHandler.postDelayed(new Runnable() {
             public void run() {
                 if(mOnAnimationFinishListener!=null) {
@@ -38,7 +39,7 @@ public class SmartAnimationDrawable extends AnimationDrawable {
      *
      * @return The total duration.
      */
-    public int getTotalDuration() {
+    private int getTotalDuration() {
         int totalDuration = 0;
         for (int i = 0; i < this.getNumberOfFrames(); i++) {
             totalDuration += this.getDuration(i);

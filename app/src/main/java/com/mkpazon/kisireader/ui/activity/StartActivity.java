@@ -14,7 +14,7 @@ import com.mkpazon.kisireader.Constants;
 import com.mkpazon.kisireader.R;
 import com.mkpazon.kisireader.service.web.Webservice;
 import com.mkpazon.kisireader.service.web.WebserviceProvider;
-import com.mkpazon.kisireader.ui.view.SmartAnimationDrawable;
+import com.mkpazon.kisireader.ui.resource.SmartAnimationDrawable;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
