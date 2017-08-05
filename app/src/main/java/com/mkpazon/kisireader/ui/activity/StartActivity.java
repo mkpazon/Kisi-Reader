@@ -1,69 +1,59 @@
-package com.mkpazon.kisireader.activity;
+package com.mkpazon.kisireader.ui.activity;
 
 import android.content.Intent;
+import android.graphics.drawable.AnimationDrawable;
 import android.nfc.NdefMessage;
 import android.nfc.NfcAdapter;
 import android.os.Bundle;
 import android.os.Parcelable;
-import android.support.annotation.NonNull;
-import android.support.design.widget.NavigationView;
-import android.support.v4.view.GravityCompat;
-import android.support.v4.widget.DrawerLayout;
-import android.support.v7.app.ActionBarDrawerToggle;
+import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
-import android.support.v7.widget.Toolbar;
-import android.view.Menu;
-import android.view.MenuItem;
+import android.widget.ImageView;
 
 import com.mkpazon.kisireader.Constants;
 import com.mkpazon.kisireader.R;
 import com.mkpazon.kisireader.service.web.Webservice;
 import com.mkpazon.kisireader.service.web.WebserviceProvider;
+import com.mkpazon.kisireader.ui.view.SmartAnimationDrawable;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
 import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.disposables.CompositeDisposable;
+import io.reactivex.functions.Action;
 import io.reactivex.observers.DisposableObserver;
 import io.reactivex.schedulers.Schedulers;
 import timber.log.Timber;
 
-public class MainActivity extends AppCompatActivity implements NavigationView.OnNavigationItemSelectedListener {
+public class StartActivity extends AppCompatActivity {
 
     private CompositeDisposable mDisposables = new CompositeDisposable();
+    private SmartAnimationDrawable mSmartAnimationDrawable;
 
-    @BindView(R.id.toolbar)
-    Toolbar mToolbar;
+    @BindView(R.id.imageView_lock)
+    ImageView mIvLock;
 
-    @BindView(R.id.drawer_layout)
-    DrawerLayout mDrawer;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_main);
+        setContentView(R.layout.activity_start);
         ButterKnife.bind(this);
-        setSupportActionBar(mToolbar);
-        setupDrawer();
+        initViews();
+    }
 
-        NfcAdapter adapter = NfcAdapter.getDefaultAdapter(this);
-        adapter.setNdefPushMessage(null, this, this);
+    private void initViews() {
+        AnimationDrawable animationDrawable = (AnimationDrawable) ContextCompat.getDrawable(this, R.drawable.lock);
+        mSmartAnimationDrawable = new SmartAnimationDrawable(animationDrawable);
+        mSmartAnimationDrawable.setOneShot(true);
+        mIvLock.setBackground(mSmartAnimationDrawable);
     }
 
     @Override
     protected void onNewIntent(Intent intent) {
         Timber.d(".onNewIntent");
-
-        setIntent(intent);
-    }
-
-    @Override
-    protected void onResume() {
-        Timber.d(".onResume");
-        super.onResume();
-
-        if (NfcAdapter.ACTION_NDEF_DISCOVERED.equals(getIntent().getAction())) {
-            processIntent(getIntent());
+        if (intent != null && NfcAdapter.ACTION_NDEF_DISCOVERED.equals(intent.getAction())) {
+            processIntent(intent);
         }
     }
 
@@ -91,6 +81,21 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         mDisposables.add(webservice.unlock(Constants.CONSTANT_AUTHORIZATION_HEADER)
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribeOn(Schedulers.io())
+                .doAfterTerminate(new Action() {
+                    @Override
+                    public void run() throws Exception {
+                        // TODO move this in onNext()
+                        mSmartAnimationDrawable.setOnAnimationFinishListener(new SmartAnimationDrawable.OnAnimationFinishListener() {
+                            @Override
+                            public void onAnimationFinish() {
+                                Intent intent = new Intent(StartActivity.this, MainActivity.class);
+                                startActivity(intent);
+                                finish();
+                            }
+                        });
+                        mSmartAnimationDrawable.start();
+                    }
+                })
                 .subscribeWith(new DisposableObserver<String>() {
                     @Override
                     public void onNext(String s) {
@@ -113,35 +118,5 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     protected void onDestroy() {
         super.onDestroy();
         mDisposables.dispose();
-    }
-
-    private void setupDrawer() {
-        ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(
-                this, mDrawer, mToolbar, R.string.navigation_drawer_open, R.string.navigation_drawer_close);
-        mDrawer.addDrawerListener(toggle);
-        toggle.syncState();
-        NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
-        navigationView.setNavigationItemSelectedListener(this);
-    }
-
-    @Override
-    public boolean onCreateOptionsMenu(Menu menu) {
-        getMenuInflater().inflate(R.menu.main, menu);
-        return true;
-    }
-
-    @Override
-    public boolean onNavigationItemSelected(@NonNull MenuItem item) {
-        return false;
-    }
-
-    @Override
-    public void onBackPressed() {
-        DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
-        if (drawer.isDrawerOpen(GravityCompat.START)) {
-            drawer.closeDrawer(GravityCompat.START);
-        } else {
-            super.onBackPressed();
-        }
     }
 }

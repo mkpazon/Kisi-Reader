@@ -4,9 +4,13 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:background="@color/lockedBackground"
     android:gravity="center"
     android:orientation="vertical"
     tools:showIn="@layout/app_bar_main">
 
-
+    <ImageView
+        android:id="@+id/imageView_lock"
+        android:layout_width="150dp"
+        android:layout_height="150dp" />
 </LinearLayout>
