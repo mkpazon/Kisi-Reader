@@ -1,10 +1,8 @@
 # Kisi Reader
 
-The Kisi Reader app demonstrates handling of NFC communication between two Android devices through the use of Android Beam. It works together with the Kisi Tag app.
+The Kisi Reader app demonstrates handling of NFC communication between two Android devices through the use of Android Beam. It works together with the [Kisi Tag](https://github.com/mkpazon/Kisi-Tag) app.
 
-
-### Demo
-[Youtube Link](https://youtu.be/iRLu9utQvy0)
+### [Demo](https://youtu.be/iRLu9utQvy0)
 
 1. Both Kisi Tag and Kisi Reader are launched in different devices. Kisi Reader shows that it is currently locked. The Kisi Tag shows what payload is about to send.
 2. The 2 devices are brought back to back to initiate Android Beam.
